@@ -23,21 +23,10 @@ type interval = record
 
 // Basic arithmetic operations for proper intervals
 function int_width (const x : interval) : Extended;
-{  przepraszam :(
 function iadd (const x, y : interval) : interval;
 function isub (const x, y : interval) : interval;
 function imul (const x, y : interval) : interval;
 function idiv (const x, y : interval) : interval;
-}
-operator + (const x, y: interval): interval;
-operator - (const x, y: interval): interval;
-operator * (const x, y: interval): interval;
-operator / (const x, y: interval): interval;
-operator = (const x, y: interval): boolean;
-operator > (const x, y: interval): boolean;
-operator < (const x, y: interval): boolean;
-operator <> (const x : interval; const y : integer): boolean;
-
 // Basic arithmetic operations for directed (improper) intervals
 // For a theory see
 // http://www.cs.put.poznan.pl/amarciniak/KONF-referaty/DirectedArithmetic.pdf
@@ -216,126 +205,8 @@ implementation
     SetRoundMode (rmNearest)
   end {int_width};
 
-  operator = (const x, y: interval): boolean;
-  begin
-    if x.a = y.a then if x.b = y.b then Result := true
-    else Result := false;
-  end;
-
-  operator <> (const x: interval; const y : integer): boolean;
-  begin
-    if x.a <> y then if x.b <> y then Result := true
-    else Result := false;
-  end;
-
-  operator > (const x, y: interval): boolean;
-  begin
-    if x.a > y.a then if x.b > y.b then Result := true
-    else Result := false;
-  end;
-
-  operator < (const x, y: interval): boolean;
-  begin
-    if x.a < y.a then if x.b < y.b then Result := true
-    else Result := false;
-  end;
-
-//function iadd (const x, y : interval) : interval;
-  operator + (const x, y: interval): interval;
-  //function iadd (const x, y : interval) : interval;
-  begin
-    SetRoundMode (rmDown);
-    Result.a:=x.a+y.a;
-    SetRoundMode (rmUp);
-    Result.b:=x.b+y.b;
-    SetRoundMode (rmNearest)
-  end {iadd};
-
-  //function isub (const x, y : interval) : interval;
-  operator - (const x, y: interval): interval;
-  begin
-    SetRoundMode (rmDown);
-    Result.a:=x.a-y.b;
-    SetRoundMode (rmUp);
-    Result.b:=x.b-y.a;
-    SetRoundMode (rmNearest)
-  end {isub};
-
-  //function imul (const x, y : interval) : interval;
-  operator * (const x, y: interval): interval;
-  var x1y1, x1y2, x2y1 : Extended;
-  begin
-    SetRoundMode (rmDown);
-    x1y1:=x.a*y.a;
-    x1y2:=x.a*y.b;
-    x2y1:=x.b*y.a;
-    with Result do
-      begin
-        a:=x.b*y.b;
-        if x2y1<a
-          then a:=x2y1;
-        if x1y2<a
-          then a:=x1y2;
-        if x1y1<a
-          then a:=x1y1
-      end;
-    SetRoundMode (rmUp);
-    x1y1:=x.a*y.a;
-    x1y2:=x.a*y.b;
-    x2y1:=x.b*y.a;
-    with Result do
-      begin
-        b:=x.b*y.b;
-        if x2y1>b
-          then b:=x2y1;
-        if x1y2>b
-          then b:=x1y2;
-        if x1y1>b
-          then b:=x1y1
-      end;
-    SetRoundMode (rmNearest)
-  end {imul};
-
-  //function idiv (const x, y : interval) : interval;
-  operator / (const x, y: interval): interval;
-  var x1y1, x1y2, x2y1 : Extended;
-  begin
-    if (y.a<=0.0) and (y.b>=0.0)
-      then raise EZeroDivide.Create ('Division by an interval containing 0.')
-      else begin
-             SetRoundMode (rmDown);
-             x1y1:=x.a/y.a;
-             x1y2:=x.a/y.b;
-             x2y1:=x.b/y.a;
-             with Result do
-               begin
-                 a:=x.b/y.b;
-                 if x2y1<a
-                   then a:=x2y1;
-                 if x1y2<a
-                   then a:=x1y2;
-                 if x1y1<a
-                   then a:=x1y1
-               end;
-             SetRoundMode (rmUp);
-             x1y1:=x.a/y.a;
-             x1y2:=x.a/y.b;
-             x2y1:=x.b/y.a;
-             with Result do
-               begin
-                 b:=x.b/y.b;
-                 if x2y1>b
-                   then b:=x2y1;
-                 if x1y2>b
-                   then b:=x1y2;
-                 if x1y1>b
-                   then b:=x1y1
-               end
-           end;
-    SetRoundMode (rmNearest)
-  end {idiv};
-
   function iadd (const x, y : interval) : interval;
+  //function iadd (const x, y : interval) : interval;
   begin
     SetRoundMode (rmDown);
     Result.a:=x.a+y.a;

@@ -4,6 +4,17 @@ interface
 
 uses IntervalArithmetic32and64, SysUtils;
 
+operator + (const x, y: interval): interval;
+operator - (const x, y: interval): interval;
+operator * (const x, y: interval): interval;
+operator / (const x, y: interval): interval;
+operator = (const x, y: interval): boolean;
+operator > (const x, y: interval): boolean;
+operator < (const x, y: interval): boolean;
+
+function iabs(const x : interval) : interval;
+function iln(const x : interval) : interval;
+
 type
     intvec  = array [0..20] of Integer;
     intervalvec = array [0..20] of interval;
@@ -185,30 +196,34 @@ procedure bintopoly (n     : Integer;
                      x     : interval;
                      var c : intervalvec);
 var k,i  : Integer;
-    prod : Extended;
+    prod, i_k, i_i, i_n : interval;
 begin
-  if x<>0
+  i_n := int_read(IntToStr(n));
+  if x<>int_read('0')
     then begin
            for k:=0 to n do
              begin
-               prod:=1;
-               for i:=0 to k-1 do
-                 prod:=prod*(n-i)/(k-i);
+               i_k := int_read(IntToStr(k));
+               prod:=int_read('1');
+               for i:=0 to k-1 do begin
+                 i_i := int_read(IntToStr(i));
+                 prod:=prod*(i_n-i_i)/(i_k-i_i)
+               end;
                if x>int_read('0')
-                 then prod:=prod*Exp((n-k)*Ln(x.a))
+                 then prod:=prod*iexp((i_n-i_k)*iln(x),st)
                  else if x<int_read('0')
                         then begin
-                               prod:=prod*Exp((n-k)*Ln(Abs(x.a)));
+                               prod:=prod*iexp((i_n-i_k)*iln(iabs(x)), st);
                                if Odd(n-k)
-                                 then prod:=-prod
+                                 then prod:=opposite(prod)
                              end;
                if Odd(k)
-                 then prod:=-prod;
-               c[k]:=int_read(FloatToStr(prod))
+                 then prod:=opposite(prod);
+               c[k]:=prod
              end;
            if Odd(n)
              then for k:=0 to n do
-                    c[k]:=int_read('-1')*c[k]
+                    c[k]:=opposite(c[k])
          end
     else begin
            if Odd(n)
@@ -304,11 +319,11 @@ begin
            for i:=0 to n do
              begin
                f[i]:=int_read('0');
-               a[i]:=int_read('0')
+               a[i]:=int_read('0');
              end;
            q:=m[0];
            a[0]:=d[q-1];
-           b[0]:=int_read('-1')*x[0];
+           b[0]:=opposite(x[0]);
            b[1]:=int_read('1');
            p:=0;
            for j:=q-2 downto 0 do
@@ -351,7 +366,7 @@ begin
                                for j:=1 to i-1 do
                                  sum:=sum+m[j];
                                a[0]:=d[sum+q-1];
-                               b[0]:=int_read('-1')*x[i];
+                               b[0]:=opposite(x[i]);
                                b[1]:=int_read('1');
                                p:=0;
                                for j:=q-2 downto 1 do
@@ -372,6 +387,76 @@ begin
                              end
                   end
          end
+end;
+
+function iabs(const x : interval) : interval;
+var tmp : Extended;
+begin
+    Result.a := Abs(x.a);
+    Result.b := Abs(x.b);
+    if (Result.a > Result.b) then
+    begin
+           tmp := Result.b;
+           Result.b := Result.a;
+           Result.a := tmp;
+    end;
+end;
+
+function iln(const x : interval) : interval;
+var tmp : Extended;
+begin
+  Result.a := Ln(x.a);
+  Result.b := Ln(x.b);
+    if (Result.a > Result.b) then
+    begin
+           tmp := Result.b;
+           Result.b := Result.a;
+           Result.a := tmp;
+    end;
+end;
+
+operator = (const x, y: interval): boolean;
+begin
+  if x.a = y.a then if x.b = y.b then Result := true
+  else Result := false;
+end;
+
+operator <> (const x: interval; const y : integer): boolean;
+begin
+  if x.a <> y then if x.b <> y then Result := true
+  else Result := false;
+end;
+
+operator > (const x, y: interval): boolean;
+begin
+  if x.a > y.a then if x.b > y.b then Result := true
+  else Result := false;
+end;
+
+operator < (const x, y: interval): boolean;
+begin
+  if x.a < y.a then if x.b < y.b then Result := true
+  else Result := false;
+end;
+
+operator + (const x, y: interval): interval;
+begin
+  Result := iadd(x, y);
+end;
+
+operator - (const x, y: interval): interval;
+begin
+  Result := isub(x, y);
+end;
+
+operator * (const x, y: interval): interval;
+begin
+  Result := imul(x, y);
+end;
+
+operator / (const x, y: interval): interval;
+begin
+  Result := idiv(x, y);
 end;
 
 end.

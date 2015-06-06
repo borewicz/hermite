@@ -6,11 +6,10 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs,
-  StdCtrls, Grids, ComCtrls, ExtCtrls,
+  StdCtrls, Grids, ComCtrls, ExtCtrls, IntervalArithmetic32and64,
   libintherm, libherm;
 
 type
-
   { TForm1 }
   TForm1 = class(TForm)
     RadioGroup1: TRadioGroup;
@@ -26,12 +25,12 @@ type
     Memo1: TMemo;
     procedure Button1Click(Sender: TObject);
     procedure FormActivate(Sender: TObject);
-    procedure RadioGroup1SelectionChanged(Sender: TObject);
+    //procedure RadioGroup1SelectionChanged(Sender: TObject);
     procedure TrackBar1Change(Sender: TObject);
     procedure TrackBar2Change(Sender: TObject);
     procedure Edit1KeyPress(Sender: TObject; var Key: Char);
-    //procedure Button1Click(Sender: TObject);
     procedure standardArithmetic;
+    procedure intervalArithmetic;
     procedure FormShow(Sender: TObject);
 
   private
@@ -42,12 +41,6 @@ type
 
 var
   Form1: TForm1;
-  f,f2                 : extvec;
-  x                    : extvec;
-  m                    : intvec;
-  H                    : Extended;
-  xx                   : Extended;
-  deriv                : Boolean;
 
 implementation
 
@@ -62,13 +55,11 @@ end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
-  if RadioGroup1.ItemIndex = 0 then
-     standardArithmetic
-  else
-      ShowMessage('Not implemented');
+  if RadioGroup1.ItemIndex = 0 then standardArithmetic
+  else intervalArithmetic;
 end;
 
-
+        {
 procedure TForm1.RadioGroup1SelectionChanged(Sender: TObject);
 begin
   if RadioGroup1.ItemIndex = 0 then
@@ -83,7 +74,7 @@ begin
        StringGrid2.ColCount := 2;
        StringGrid2.Cells[1,0] := 'f2';
   end;
-end;
+end;     }
 
 procedure TForm1.TrackBar1Change(Sender: TObject);
 begin
@@ -92,7 +83,7 @@ end;
 
 procedure TForm1.TrackBar2Change(Sender: TObject);
 begin
-          StringGrid2.RowCount := TrackBar2.Position + 2;
+     StringGrid2.RowCount := TrackBar2.Position + 2;
 end;
 
 procedure TForm1.Edit1KeyPress(Sender: TObject; var Key: Char);
@@ -110,6 +101,10 @@ procedure TForm1.standardArithmetic;
 var i,ox,l,j,st,n : Integer;
     value, out_i, out_fi : String;
   d : Extended;
+  x : extvec;
+  m : intvec;
+  xx                   : Extended;
+  f               : extvec;
 begin
   st := 0;
   n := TrackBar1.Position;
@@ -121,9 +116,9 @@ begin
       val(StringGrid1.Cells[0,i+1], x[i]);
       val(StringGrid1.Cells[1,i+1], m[i]);
     end;
-      for i:=0 to TrackBar2.Position do
-    begin
-      if i=0
+  for i:=0 to TrackBar2.Position do
+  begin
+    if i=0
         then l:=0
         else l:=l+m[i-1];
       for j:=l to l+m[i]-1 do
@@ -131,55 +126,68 @@ begin
           val(StringGrid2.Cells[0,ox+1], f[j]);
           ox := ox + 1;
         end
-    end;
-    xx := StrToFloat(Edit1.Text);
-    d := Hermitevalue(TrackBar1.Position, TrackBar2.Position, x, m, f, xx, st);
-    Memo1.Lines.Clear;
-    Memo1.Lines.Add('Wartość:');
-    str(d:5:20, value);
-    Memo1.Lines.Add(value);
-    Memo1.Lines.Add('Współczynniki:');
-    {===============================}
-      Hermitecoeffns (TrackBar1.Position, TrackBar2.Position, x, m, f, st);
-    for i:=0 to n do
-    begin
-        str(i, out_i);
-        str(f[i], out_fi);
-        Memo1.Lines.Add('f[' + out_i + '] = ' + out_fi);
-      end;
-    {for i:=0 to k do
-    begin
+  end;
+  xx := StrToFloat(Edit1.Text);
+  d := Hermitevalue(TrackBar1.Position, TrackBar2.Position, x, m, f, xx, st);
+  Memo1.Lines.Clear;
+  Memo1.Lines.Add('Wartość:');
+  str(d:5:20, value);
+  Memo1.Lines.Add(value);
+  Memo1.Lines.Add('Współczynniki:');
+  Hermitecoeffns (TrackBar1.Position, TrackBar2.Position, x, m, f, st);
+  for i:=0 to n do
+  begin
+     str(i, out_i);
+     str(f[i], out_fi);
+     Memo1.Lines.Add('f[' + out_i + '] = ' + out_fi);
+  end;
+end;
 
-      if i=0
+procedure TForm1.intervalArithmetic;
+var i,ox,l,j,st,n : Integer;
+    out_i : String;
+  d : interval;
+  x : intervalvec;
+  m : intvec;
+  xx : interval;
+  f : intervalvec;
+  ileft, iright : string;
+begin
+  st := 0;
+  n := TrackBar1.Position;
+  ox := 0;
+  FormatSettings.DecimalSeparator:='.';
+  for i := 0 to TrackBar2.Position do
+    begin
+    {TODO: zabezpieczenia w przypadku, kiedy tablica nie jest wypełniona}
+      x[i] := int_read(StringGrid1.Cells[0,i+1]);
+      val(StringGrid1.Cells[1,i+1], m[i]);
+    end;
+  for i:=0 to TrackBar2.Position do
+  begin
+    if i=0
         then l:=0
         else l:=l+m[i-1];
       for j:=l to l+m[i]-1 do
         begin
-          deriv:=True;
-          case j-l-1 of
-            -1 : begin
-                   H:=f[n];
-                   for p:=n-1 downto 0 do
-                     H:=H*x[i]+f[p]
-                 end;
-             0 : begin
-                   H:=n*f[n];
-                   for p:=n-1 downto 1 do
-                     H:=H*x[i]+p*f[p]
-                 end;
-             1 : begin
-                   H:=n*(n-1)*f[n];
-                   for p:=n-1 downto 2 do
-                     H:=H*x[i]+p*(p-1)*f[p]
-                 end;
-            else deriv:=False
-          end;
-          if deriv
-            then Memo1.Lines.Add('x[' + IntToStr(i) + '] = ' + FloatToStr(H))
-            else Memo1.Lines.Add('x[' + IntToStr(i) + '] = niepoliczone');
+          f[j] := int_read(StringGrid2.Cells[0,ox+1]);
+          ox := ox + 1;
         end
-    end;
-    }
+  end;
+  xx := int_read(Edit1.Text);
+  d := IntervalHermitevalue(TrackBar1.Position, TrackBar2.Position, x, m, f, xx, st);
+  iends_to_strings(d, ileft, iright);
+  Memo1.Lines.Clear;
+  Memo1.Lines.Add('Wartość:');
+  Memo1.Lines.Add('[' + ileft + ';' + iright + ']');
+  Memo1.Lines.Add('Współczynniki:');
+  IntervalHermitecoeffns (TrackBar1.Position, TrackBar2.Position, x, m, f, st);
+  for i:=0 to n do
+  begin
+     str(i, out_i);
+     iends_to_strings(f[i], ileft, iright);
+     Memo1.Lines.Add('f[' + out_i + '] = [' + ileft + ';' + iright + ']');
+  end;
 end;
 
 procedure TForm1.FormShow(Sender: TObject);
@@ -205,7 +213,6 @@ begin
      StringGrid2.Cells[0,5] := IntToStr(25);
      StringGrid2.Cells[0,6] := IntToStr(36);
      Edit1.Text := '2.5';
-
 end;
 
 end.
