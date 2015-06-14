@@ -14,13 +14,12 @@ interface
 // EnableFWAITsEverywhere is define within this unit by the $DEFINE compiler
 // directive (both these defines are given as comments in uTExtendedX87 unit
 // - see lines 126 and 128 in uTExtendedX87)
-uses uTExtendedX87;
-type Extended = TExtendedX87;
+//uses uTExtendedX87;
+//type Extended = TExtendedX87;
 {$ENDIF}
 type interval = record
                   a, b : Extended
                 end;
-
 // Basic arithmetic operations for proper intervals
 function int_width (const x : interval) : Extended;
 function iadd (const x, y : interval) : interval;
@@ -32,7 +31,7 @@ function idiv (const x, y : interval) : interval;
 // http://www.cs.put.poznan.pl/amarciniak/KONF-referaty/DirectedArithmetic.pdf
 function dint_width (const x : interval) : Extended;
 function projection (const x : interval) : interval;
-function opposite (const x : interval) : interval;
+//function opposite (const x : interval) : interval;
 function inverse (const x : interval) : interval;
 function diadd (const x, y : interval) : interval;
 function disub (const x, y : interval) : interval;
@@ -206,7 +205,6 @@ implementation
   end {int_width};
 
   function iadd (const x, y : interval) : interval;
-  //function iadd (const x, y : interval) : interval;
   begin
     SetRoundMode (rmDown);
     Result.a:=x.a+y.a;
@@ -263,7 +261,8 @@ implementation
   begin
     if (y.a<=0.0) and (y.b>=0.0)
       then raise EZeroDivide.Create ('Division by an interval containing 0.')
-      else begin
+      else
+      begin
              SetRoundMode (rmDown);
              x1y1:=x.a/y.a;
              x1y2:=x.a/y.b;
@@ -1806,3 +1805,4 @@ initialization
                +'exceed the Double type range.');
 {$ENDIF}
 end.
+

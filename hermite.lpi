@@ -48,14 +48,14 @@
         <UnitName Value="MainForm"/>
       </Unit1>
       <Unit2>
-        <Filename Value="IntervalArithmetic32and64.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="IntervalArithmetic32and64"/>
-      </Unit2>
-      <Unit3>
         <Filename Value="uTExtendedX87.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uTExtendedX87"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="IntervalArithmetic.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="IntervalArithmetic"/>
       </Unit3>
     </Units>
   </ProjectOptions>
